@@ -90,7 +90,7 @@ const ForestIslandSvg = ({
   const gridTopY = centerY - gridTopHeight / 2;
   
   // Visual params for the island ground (added margin so objects stay inside)
-  // Increased margin to accommodate top isometric height
+  // Reverting to previous grid size but increasing margin to create strict safety boundary
   const visualMargin = 2.5; 
   const visualGridMax = gridMax + visualMargin; 
   const topWidth = slotStep * visualGridMax * 2;
@@ -103,11 +103,8 @@ const ForestIslandSvg = ({
   const slots = getSlotsForSize(size);
   const [hoveredSlot, setHoveredSlot] = useState<number | null>(null);
 
-  // Shift grid down to make more room at the top (visually "back") of the island
-  // This compensates for the sprite height of items placed at the back edge.
-  // Half of the extra visual margin is added to the top, and we shift the grid down
-  // to keep the bottom edge relative distance roughly the same.
-  const gridOffsetY = slotStep * 0.5;
+  // Grid offset removed (0) to align top slots closer to edge
+  const gridOffsetY = 0;
 
   const isoPoint = (gridX: number, gridY: number) => {
     // We anchor the grid relative to the center, not the visual top

@@ -274,8 +274,8 @@ const Forest = () => {
         const config = sizeConfig.kid;
         const centerX = config.width / 2;
         // Correct height calculation to use slotStep instead of tile size
-        // Applied gridOffsetY (slotStep * 0.5) to match ForestIslandSvg logic
-        const topY = (config.centerY - (config.slotStep * config.gridMax) / 2) + (config.slotStep * 0.5);
+        // Removed gridOffsetY adjustment to match component
+        const topY = config.centerY - (config.slotStep * config.gridMax) / 2;
         const validSlots = getSlotsForSize('kid');
 
         // Check if the new position is within range of any valid tile
@@ -284,7 +284,8 @@ const Forest = () => {
           const slotX = centerX + (slot.x - slot.y) * config.slotStep;
           const slotY = topY + (slot.x + slot.y) * config.slotStep * 0.5;
           const distSq = (nextX - slotX) ** 2 + (nextY - slotY) ** 2;
-          return distSq < (config.slotStep * 1.0) ** 2;
+          // Tighter radius (0.8 of step) to ensure avatar stays strictly on the flat service
+          return distSq < (config.slotStep * 0.8) ** 2;
         });
 
         // additional bounds check for overall svg
