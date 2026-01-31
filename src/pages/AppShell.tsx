@@ -37,7 +37,7 @@ const AppShell = () => {
   return (
     <div className="min-h-screen">
       <TopNav totalPoints={family.totalPoints} familyName={family.familyName} />
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-6 px-0 pb-10 md:flex-row md:px-6">
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-6 px-0 pb-24 md:flex-row md:px-6 md:pb-10">
         <div className="pointer-events-none absolute -left-10 top-16 hidden h-40 w-40 rounded-full bg-white/30 blur-3xl md:block animate-float-slow" />
         <div className="pointer-events-none absolute right-6 top-52 hidden h-48 w-48 rounded-full bg-white/20 blur-3xl md:block animate-float-slow" />
         <Sidebar />
