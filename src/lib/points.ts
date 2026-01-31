@@ -5,7 +5,9 @@ export const DEFAULT_ACTIONS: ActionDefinition[] = [
   { id: 'NO_COMPLAINT', label: 'No complaint', points: 3 },
   { id: 'HELP_COOK', label: 'Help cook', points: 7 },
   { id: 'FINISH_MEAL', label: 'Finish meal', points: 4 },
-  { id: 'INTERNATIONAL', label: 'International bite', points: 10, requiresFood: true, requiresCountry: true }
+  { id: 'INTERNATIONAL', label: 'International bite', points: 10, requiresFood: true, requiresCountry: true },
+  { id: 'MADE_MESS', label: 'Made a mess', points: -2 },
+  { id: 'CLEAN_TABLE', label: 'Clean eater', points: 5 }
 ];
 
 export const DEFAULT_MEALS: MealDefinition[] = [

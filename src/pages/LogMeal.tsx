@@ -38,6 +38,7 @@ import {
   Sparkles,
   Sun,
   Sunrise,
+  Trash2,
   Users,
   Utensils
 } from 'lucide-react';
@@ -47,7 +48,9 @@ const ACTION_ICONS: Record<string, typeof Sparkles> = {
   NO_COMPLAINT: Smile,
   HELP_COOK: ChefHat,
   FINISH_MEAL: Medal,
-  INTERNATIONAL: Compass
+  INTERNATIONAL: Compass,
+  MADE_MESS: Trash2,
+  CLEAN_TABLE: Sparkles
 };
 
 const MEAL_ICONS: Record<string, typeof Sparkles> = {
