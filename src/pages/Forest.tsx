@@ -1010,16 +1010,21 @@ const Forest = () => {
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {([
-                { key: 'hunger', label: 'Fed', color: 'bg-moss-400' },
-                { key: 'cleanliness', label: 'Clean', color: 'bg-sun-400' },
-                { key: 'hydration', label: 'Refreshed', color: 'bg-sky-400' },
-                { key: 'social', label: 'Social', color: 'bg-sun-300' },
-                { key: 'fun', label: 'Fun', color: 'bg-rose-300' },
-                { key: 'energy', label: 'Rested', color: 'bg-amber-300' },
-                { key: 'curiosity', label: 'Curious', color: 'bg-emerald-300' },
-                { key: 'creativity', label: 'Creative', color: 'bg-sky-300' }
+                { key: 'hunger', label: 'Fed' },
+                { key: 'cleanliness', label: 'Clean' },
+                { key: 'hydration', label: 'Refreshed' },
+                { key: 'social', label: 'Social' },
+                { key: 'fun', label: 'Fun' },
+                { key: 'energy', label: 'Rested' },
+                { key: 'curiosity', label: 'Curious' },
+                { key: 'creativity', label: 'Creative' }
               ] as const).map((stat) => {
                 const value = effectiveCareStats[stat.key];
+                let colorClass = 'bg-green-500';
+                if (value <= 25) colorClass = 'bg-red-500';
+                else if (value <= 50) colorClass = 'bg-orange-500';
+                else if (value <= 75) colorClass = 'bg-yellow-400';
+
                 return (
                   <div key={stat.key}>
                     <div className="flex items-center justify-between text-[11px] text-mist-600">
@@ -1027,7 +1032,7 @@ const Forest = () => {
                       <span className="font-semibold text-pine-900">{value}%</span>
                     </div>
                     <div className="mt-1 h-2 w-full rounded-full bg-mist-200">
-                      <div className={`h-2 rounded-full ${stat.color}`} style={{ width: `${value}%` }} />
+                      <div className={`h-2 rounded-full ${colorClass}`} style={{ width: `${value}%` }} />
                     </div>
                   </div>
                 );
