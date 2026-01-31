@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isFamilyOwner(familyId) {
+      return signedIn() &&
+        get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
+    }
+
+    match /families/{familyId} {
+      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow read, update, delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+    }
+
+    match /kids/{kidId} {
+      allow create: if signedIn() && isFamilyOwner(request.resource.data.familyId);
+      allow read, update, delete: if signedIn() && isFamilyOwner(resource.data.familyId);
+    }
+
+    match /kids/{kidId}/forestItems/{itemId} {
+      allow create: if signedIn() &&
+        isFamilyOwner(get(/databases/$(database)/documents/kids/$(kidId)).data.familyId) &&
+        request.resource.data.familyId == get(/databases/$(database)/documents/kids/$(kidId)).data.familyId;
+      allow read, update, delete: if signedIn() &&
+        isFamilyOwner(get(/databases/$(database)/documents/kids/$(kidId)).data.familyId);
+    }
+
+    match /logs/{logId} {
+      allow create: if signedIn() && isFamilyOwner(request.resource.data.familyId);
+      allow read, update, delete: if signedIn() && isFamilyOwner(resource.data.familyId);
+    }
+
+    match /families/{familyId}/forestItems/{itemId} {
+      allow create: if signedIn() && isFamilyOwner(familyId) && request.resource.data.familyId == familyId;
+      allow read, update, delete: if signedIn() && isFamilyOwner(familyId);
+    }
+
+    match /rewardItems/{itemId} {
+      allow create: if signedIn() &&
+        (isFamilyOwner(request.resource.data.familyId) || request.resource.data.ownerUid == request.auth.uid);
+      allow read, update, delete: if signedIn() &&
+        (isFamilyOwner(resource.data.familyId) || resource.data.ownerUid == request.auth.uid);
+    }
+
+    match /rewardRequests/{requestId} {
+      allow create: if signedIn() && isFamilyOwner(request.resource.data.familyId);
+      allow read, update, delete: if signedIn() && isFamilyOwner(resource.data.familyId);
+    }
+  }
+}

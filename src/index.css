@@ -1,0 +1,249 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@400;500;600;700&display=swap');
+
+@font-face {
+  font-family: "Now";
+  src: local("Now");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: "Now", "Quicksand", system-ui, sans-serif;
+    background-color: #c5e9f5;
+    background-image:
+      url("../assets/desktopTransparentBackground.png"),
+      linear-gradient(180deg, rgba(197, 233, 245, 0.95) 0%, rgba(129, 235, 239, 0.85) 55%, rgba(255, 255, 255, 0.85) 100%);
+    background-size: cover, cover;
+    background-position: center top, center top;
+    background-repeat: no-repeat, no-repeat;
+    color: #15694c;
+    min-height: 100vh;
+    position: relative;
+    background-attachment: fixed;
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: "Now", "Fredoka", sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-3xl border-2 border-mist-200 backdrop-blur shadow-card;
+    background-image: linear-gradient(
+      180deg,
+      rgba(255, 250, 225, 0.95) 0%,
+      rgba(255, 237, 195, 0.9) 100%
+    );
+  }
+
+  .input {
+    @apply w-full rounded-2xl border-2 border-mist-200 bg-white/85 px-3 py-2 text-sm text-pine-900 placeholder:text-mist-500 focus:outline-none focus:ring-2 focus:ring-moss-200;
+  }
+
+  .select {
+    @apply w-full rounded-2xl border-2 border-mist-200 bg-white/85 px-3 py-2 text-sm text-pine-900 focus:outline-none focus:ring-2 focus:ring-moss-200;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full border-2 border-mist-200 bg-moss-300 px-4 py-2 text-sm font-semibold text-pine-900 shadow-soft transition hover:bg-moss-400 focus:outline-none focus:ring-2 focus:ring-moss-200;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-full border-2 border-mist-200 px-3 py-2 text-sm font-semibold text-pine-800 hover:bg-mist-100 focus:outline-none focus:ring-2 focus:ring-moss-200;
+  }
+
+  .slider-kid {
+    @apply w-full;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 14px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #c5e9f5 0%, #81ebef 45%, #6dc888 100%);
+    border: 2px solid #c5e9f5;
+  }
+
+  .slider-kid::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 4px solid #ffffff;
+    background: #6dc888;
+    box-shadow: 0 6px 14px rgba(21, 105, 76, 0.25);
+  }
+
+  .slider-kid::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 4px solid #ffffff;
+    background: #6dc888;
+    box-shadow: 0 6px 14px rgba(21, 105, 76, 0.25);
+  }
+
+  .slider-kid::-moz-range-track {
+    height: 14px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #c5e9f5 0%, #81ebef 45%, #6dc888 100%);
+    border: 2px solid #c5e9f5;
+  }
+
+  .card-scenic-dash {
+    background-image:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(197, 233, 245, 0.78) 100%),
+      url("../assets/desktopBackground (5).png");
+    background-size: cover;
+    background-position: center;
+  }
+
+  .card-scenic-forest {
+    background-image:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(129, 235, 239, 0.7) 100%),
+      url("../assets/desktopBackground (4).png");
+    background-size: cover;
+    background-position: center;
+  }
+
+  .card-scenic-kid {
+    background-image:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(197, 233, 245, 0.75) 100%),
+      url("../assets/desktopBackground (3).png");
+    background-size: cover;
+    background-position: center;
+  }
+}
+
+@layer utilities {
+  .map-scroll {
+    background: transparent;
+  }
+
+  .map-canvas {
+    background-image:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(197, 233, 245, 0.7) 45%, rgba(109, 200, 136, 0.45) 100%),
+      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.5) 0 18px, transparent 20px),
+      radial-gradient(circle at 70% 35%, rgba(255, 255, 255, 0.35) 0 14px, transparent 18px),
+      radial-gradient(circle at 40% 65%, rgba(255, 255, 255, 0.4) 0 16px, transparent 20px);
+    background-size: 100% 100%, 180px 180px, 220px 220px, 200px 200px;
+    background-repeat: no-repeat, repeat, repeat, repeat;
+  }
+
+  .map-cloud {
+    filter: drop-shadow(0 6px 10px rgba(21, 105, 76, 0.15));
+  }
+
+  .avatar-hover {
+    transition: transform 0.2s ease;
+    transform-origin: center;
+  }
+
+  .avatar-hover:hover {
+    transform: scale(2.5);
+  }
+
+  .forest-item {
+    transition: transform 0.2s ease;
+    transform-origin: center;
+    transform-box: fill-box;
+    transform: scale(var(--item-scale, 1));
+    will-change: transform;
+  }
+
+  .forest-item:hover {
+    transform: scale(calc(var(--item-scale, 1) * 2.5));
+  }
+
+  .forest-avatar {
+    transition: transform 0.2s ease;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+
+  .forest-avatar:hover {
+    transform: scale(2.5);
+  }
+
+  .family-avatar {
+    position: absolute;
+    animation: wander 10s ease-in-out infinite;
+    transition: transform 0.2s ease;
+  }
+
+
+  .avatar-chat {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    color: #6dc888;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    opacity: 0;
+    animation: chat-pop 7s ease-in-out infinite;
+  }
+
+  .chat-bubble {
+    opacity: 0;
+    animation: chat-pop 7s ease-in-out infinite;
+  }
+}
+
+@keyframes wander {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(6px, -4px);
+  }
+  50% {
+    transform: translate(-4px, 4px);
+  }
+  75% {
+    transform: translate(4px, 6px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes chat-pop {
+  0%,
+  40% {
+    opacity: 0;
+  }
+  50%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
