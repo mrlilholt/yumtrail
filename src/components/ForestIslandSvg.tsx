@@ -1,6 +1,6 @@
 import { useId, useMemo, useRef, useState } from 'react';
 import { ForestItem, Kid } from '../types';
-import { getSlotsForSize } from '../lib/forestLayout';
+import { getSlotsForSize, sizeConfig } from '../lib/forestLayout';
 import ForestItemSvg from './ForestItemSvg';
 import { ForestItemId } from '../lib/forestCatalog';
 import cloudPng from '../../assets/cloud.png';
@@ -62,13 +62,8 @@ type ForestIslandSvgProps = {
     filledSlots: number[];
     onSelect: (slotIndex: number) => void;
   };
+  initialPosition?: { x: number; y: number };
 };
-
-const sizeConfig = {
-  family: { width: 760, height: 440, tile: 42, slotStep: 42, depth: 95, centerY: 150, itemScale: 1 },
-  kid: { width: 640, height: 380, tile: 38, slotStep: 38, depth: 80, centerY: 140, itemScale: 0.9 },
-  mini: { width: 320, height: 220, tile: 22, slotStep: 30, depth: 48, centerY: 85, itemScale: 0.72 }
-} as const;
 
 const ForestIslandSvg = ({
   items,
@@ -82,24 +77,45 @@ const ForestIslandSvg = ({
   manualAvatar,
   onItemSelect,
   selectedItemId,
-  placement
+  placement,
+  initialPosition
 }: ForestIslandSvgProps) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragRef = useRef<{ pointerId: number } | null>(null);
   const uid = useId().replace(/:/g, '');
-  const { width, height, tile, slotStep, depth, centerY, itemScale } = sizeConfig[size];
-  const topWidth = tile * 10;
-  const topHeight = tile * 5;
+  const { width, height, tile, slotStep, depth, centerY, itemScale, gridMax } = sizeConfig[size];
+  
+  // Logic params for grid placement (unchanged)
+  const gridTopHeight = slotStep * gridMax;
+  const gridTopY = centerY - gridTopHeight / 2;
+  
+  // Visual params for the island ground (added margin so objects stay inside)
+  // Increased margin to accommodate top isometric height
+  const visualMargin = 2.5; 
+  const visualGridMax = gridMax + visualMargin; 
+  const topWidth = slotStep * visualGridMax * 2;
+  const topHeight = slotStep * visualGridMax;
+  
   const centerX = width / 2;
-  const topY = centerY - topHeight / 2;
+  const topY = centerY - topHeight / 2; // Visual top Y
   const manualActive = manualAvatar?.enabled ?? false;
 
   const slots = getSlotsForSize(size);
   const [hoveredSlot, setHoveredSlot] = useState<number | null>(null);
 
+  // Shift grid down to make more room at the top (visually "back") of the island
+  // This compensates for the sprite height of items placed at the back edge.
+  // Half of the extra visual margin is added to the top, and we shift the grid down
+  // to keep the bottom edge relative distance roughly the same.
+  const gridOffsetY = slotStep * 0.5;
+
   const isoPoint = (gridX: number, gridY: number) => {
+    // We anchor the grid relative to the center, not the visual top
+    // logical (0,0) is at gridTopY.
+    // gridTopY is centerY - gridTopHeight/2.
+    // So we use gridTopY instead of the visual topY to calculate positions.
     const baseX = centerX + (gridX - gridY) * slotStep;
-    const baseY = topY + (gridX + gridY) * slotStep * 0.5;
+    const baseY = gridTopY + (gridX + gridY) * slotStep * 0.5 + gridOffsetY;
     return { x: baseX, y: baseY };
   };
 
@@ -284,11 +300,28 @@ const ForestIslandSvg = ({
     };
 
     const slotSet = new Set(availableSlots.map((slot) => `${slot.x},${slot.y}`));
+    
+    // Find precise start slot if initialPosition provided
+    let forcedStartSlot: typeof slots[0] | null = null;
+    if (initialPosition) {
+      let minInfo = { dist: Number.POSITIVE_INFINITY, slot: null as typeof slots[0] | null };
+      availableSlots.forEach((slot) => {
+        const p = isoPoint(slot.x, slot.y);
+        const dist = (p.x - initialPosition.x) ** 2 + (p.y - initialPosition.y) ** 2;
+        if (dist < minInfo.dist) {
+          minInfo = { dist, slot };
+        }
+      });
+      forcedStartSlot = minInfo.slot;
+    }
+
     const maxAttempts = 40;
     let gridPoints: { x: number; y: number }[] | null = null;
 
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      const start = availableSlots[Math.floor(random() * availableSlots.length)];
+      const start = forcedStartSlot && attempt < 20
+        ? forcedStartSlot
+        : availableSlots[Math.floor(random() * availableSlots.length)];
       const opposite = availableSlots[Math.floor(random() * availableSlots.length)];
       if (start.x === opposite.x || start.y === opposite.y) continue;
       const cornerOne = { x: opposite.x, y: start.y };
@@ -303,7 +336,12 @@ const ForestIslandSvg = ({
     }
 
     if (!gridPoints) {
-      gridPoints = availableSlots.slice(0, Math.min(4, availableSlots.length));
+      if (forcedStartSlot) {
+        const others = availableSlots.filter((s) => s !== forcedStartSlot).slice(0, 3);
+        gridPoints = [forcedStartSlot, ...others];
+      } else {
+        gridPoints = availableSlots.slice(0, Math.min(4, availableSlots.length));
+      }
     }
 
     const points = gridPoints.map((grid) => isoPoint(grid.x, grid.y));
@@ -324,7 +362,7 @@ const ForestIslandSvg = ({
     const valuesY = frames.map((point) => point.y).join(';');
     const keyTimes = keyTimesArray.join(';');
     const duration = 18 + random() * 10;
-    const delay = -duration * random();
+    const delay = forcedStartSlot ? 0 : -duration * random();
     const sizeValue = 30 + random() * 8;
     return {
       duration,
@@ -337,7 +375,7 @@ const ForestIslandSvg = ({
       framePoints: frames,
       directionFrames
     };
-  }, [uid, size, slots, slotStep, topY, centerX]);
+  }, [uid, size, slots, slotStep, topY, centerX, initialPosition]);
 
   const chatTranslateValues = useMemo(() => {
     if (!character) return null;

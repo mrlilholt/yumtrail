@@ -31,7 +31,7 @@ import AvatarIcon from '../components/AvatarIcon';
 import { getActionLabel, getActionLabels, getCompletionLabel, getMealLabel, getPointConfig } from '../lib/points';
 import { ForestCatalogItem, getForestItemById } from '../lib/forestCatalog';
 import { getCountryByCode } from '../lib/countries';
-import { getSlotsForSize } from '../lib/forestLayout';
+import { getSlotsForSize, sizeConfig } from '../lib/forestLayout';
 import { useToast } from '../components/ToastProvider';
 import { ForestItem, Kid, Log } from '../types';
 import { calcCashFromPoints } from '../lib/cash';
@@ -228,12 +228,90 @@ const Forest = () => {
     window.addEventListener('pointermove', handleMove);
     window.addEventListener('pointerup', handleUp);
     window.addEventListener('pointercancel', handleUp);
+    
+    // Keyboard Navigation for Moving Manual Avatar
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only move if we have an active kid and their avatar is in manual mode
+      if (!activeKidId || !manualAvatarIds[activeKidId]) return;
+      
+      const speed = 20;
+      let dx = 0;
+      let dy = 0;
+
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          dy = -speed;
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          dy = speed;
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          dx = -speed;
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          dx = speed;
+          break;
+        default:
+          return;
+      }
+
+      setManualAvatarPositions((prev) => {
+        // Default start position (center of kid island: 640x380 svg, center x=320, center y=140)
+        const current = prev[activeKidId] ?? { x: 320, y: 140 };
+        
+        const nextX = current.x + dx;
+        const nextY = current.y + dy;
+
+        // Island boundaries logic (mirrors ForestIslandSvg 'kid' size)
+        const config = sizeConfig.kid;
+        const centerX = config.width / 2;
+        // Correct height calculation to use slotStep instead of tile size
+        // Applied gridOffsetY (slotStep * 0.5) to match ForestIslandSvg logic
+        const topY = (config.centerY - (config.slotStep * config.gridMax) / 2) + (config.slotStep * 0.5);
+        const validSlots = getSlotsForSize('kid');
+
+        // Check if the new position is within range of any valid tile
+        // We give a generous radius (equal to step size) so it feels like walking on the surface
+        const isOnIsland = validSlots.some((slot) => {
+          const slotX = centerX + (slot.x - slot.y) * config.slotStep;
+          const slotY = topY + (slot.x + slot.y) * config.slotStep * 0.5;
+          const distSq = (nextX - slotX) ** 2 + (nextY - slotY) ** 2;
+          return distSq < (config.slotStep * 1.0) ** 2;
+        });
+
+        // additional bounds check for overall svg
+        const inBounds = nextX >= 0 && nextX <= config.width && nextY >= 0 && nextY <= config.height;
+
+        if (isOnIsland && inBounds) {
+          return {
+            ...prev,
+            [activeKidId]: { x: nextX, y: nextY }
+          };
+        }
+        
+        // If movement is blocked, return previous state
+        return prev;
+      });
+      e.preventDefault(); // Prevent page scrolling
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
     return () => {
       window.removeEventListener('pointermove', handleMove);
       window.removeEventListener('pointerup', handleUp);
       window.removeEventListener('pointercancel', handleUp);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [activeKidId, manualAvatarIds]);
 
   useEffect(() => {
     if (!familyId || kids.length === 0) return;
@@ -518,23 +596,19 @@ const Forest = () => {
   const renderZoomControls = (key: string) => {
     const zoom = getZoom(key);
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-mist-600">Zoom</span>
+      <div className="absolute right-2 top-2 z-10 flex gap-2 rounded-full border border-mist-200 bg-white/90 p-1 shadow-sm transition-opacity opacity-80 hover:opacity-100">
         <button
           type="button"
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-mist-200 bg-white/80 text-xs font-semibold text-pine-700 transition hover:bg-white disabled:opacity-50"
+          className="flex h-7 w-7 items-center justify-center rounded-full bg-mist-50 text-xs font-semibold text-pine-900 transition hover:bg-mist-100 disabled:opacity-40"
           onClick={() => updateZoom(key, -ZOOM_STEP)}
           disabled={zoom <= MIN_ZOOM + 0.001}
           aria-label="Zoom out"
         >
           −
         </button>
-        <span className="min-w-[44px] rounded-full bg-mist-100 px-2 py-1 text-center text-xs font-semibold text-pine-900">
-          {Math.round(zoom * 100)}%
-        </span>
         <button
           type="button"
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-mist-200 bg-white/80 text-xs font-semibold text-pine-700 transition hover:bg-white disabled:opacity-50"
+          className="flex h-7 w-7 items-center justify-center rounded-full bg-mist-50 text-xs font-semibold text-pine-900 transition hover:bg-mist-100 disabled:opacity-40"
           onClick={() => updateZoom(key, ZOOM_STEP)}
           disabled={zoom >= MAX_ZOOM - 0.001}
           aria-label="Zoom in"
@@ -997,6 +1071,7 @@ const Forest = () => {
               touchAction: canPan ? 'none' : 'auto'
             }}
           >
+            {renderZoomControls(zoomKey)}
             <div style={{ transform: `translate(${pan.x}px, ${pan.y}px)` }}>
               <div
                 ref={(node) => {
@@ -1014,6 +1089,7 @@ const Forest = () => {
                   bubbleMessage={bubbleMessage}
                   bubbleKey={bubbleToken}
                   bubbleScale={bubbleScale}
+                  initialPosition={manualAvatarPositions[kid.id]}
                   manualAvatar={{
                     enabled: manualAvatarEnabled,
                     position: manualAvatarPositions[kid.id],
@@ -1219,15 +1295,11 @@ const Forest = () => {
         </div>
 
         <div className="mt-6 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs font-semibold text-mist-600">Family island view</p>
-            {renderZoomControls(mosaicZoomKey)}
-          </div>
           <div
             ref={(node) => {
               panContainerRefs.current[mosaicZoomKey] = node;
             }}
-            className="relative rounded-3xl border border-mist-200 bg-white/70 p-4 shadow-soft overflow-hidden"
+            className="relative rounded-3xl border border-mist-200 bg-white/70 shadow-soft overflow-hidden"
             onPointerDown={(event) => {
               if (!mosaicCanPan) return;
               handlePanStart(mosaicZoomKey, event);
@@ -1237,6 +1309,7 @@ const Forest = () => {
               touchAction: mosaicCanPan ? 'none' : 'auto'
             }}
           >
+            {renderZoomControls(mosaicZoomKey)}
             <div style={{ transform: `translate(${mosaicPan.x}px, ${mosaicPan.y}px)` }}>
               <div
                 ref={(node) => {
