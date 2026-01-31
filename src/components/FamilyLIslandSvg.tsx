@@ -165,67 +165,6 @@ const FamilyLIslandSvg = ({ tiles, className }: FamilyLIslandSvgProps) => {
         slot.x + slot.y < maxSum
     );
     const availableSlots = safeSlots.length >= 4 ? safeSlots : slots;
-    const seed = uid.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) + 97;
-    let value = seed + 0x9e3779b9;
-    const random = () => {
-      value += 0x9e3779b9;
-      let t = Math.imul(value ^ (value >>> 15), 1 | value);
-      t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-
-    const slotSet = new Set(availableSlots.map((slot) => `${slot.x},${slot.y}`));
-    const maxAttempts = 40;
-    let gridPoints: { x: number; y: number }[] | null = null;
-
-    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      const start = availableSlots[Math.floor(random() * availableSlots.length)];
-      const opposite = availableSlots[Math.floor(random() * availableSlots.length)];
-      if (start.x === opposite.x || start.y === opposite.y) continue;
-      const cornerOne = { x: opposite.x, y: start.y };
-      const cornerTwo = { x: start.x, y: opposite.y };
-      if (
-        slotSet.has(`${cornerOne.x},${cornerOne.y}`) &&
-        slotSet.has(`${cornerTwo.x},${cornerTwo.y}`)
-      ) {
-        gridPoints = [start, cornerOne, opposite, cornerTwo];
-        break;
-      }
-    }
-
-    if (!gridPoints) {
-      gridPoints = availableSlots.slice(0, Math.min(4, availableSlots.length));
-    }
-
-    const chosenTile = tileCenters[Math.floor(random() * tileCenters.length)];
-    const points = gridPoints.map((grid) => isoPoint(chosenTile.x, chosenTile.y, grid.x, grid.y));
-    const directions = points.map((point, index) => {
-      const next = points[(index + 1) % points.length];
-      const dx = next.x - point.x;
-      const dy = next.y - point.y;
-      if (dx >= 0 && dy >= 0) return 'Right-Down';
-      if (dx >= 0 && dy < 0) return 'Right-Up';
-      if (dx < 0 && dy >= 0) return 'Left-Down';
-      return 'Left-Up';
-    });
-
-    const frames = [...points, points[0]];
-    const directionFrames = [...directions, directions[0]];
-    const valuesX = frames.map((point) => point.x).join(';');
-    const valuesY = frames.map((point) => point.y).join(';');
-    const keyTimes = frames.map((_, index) => index / (frames.length - 1)).join(';');
-    const duration = 20 + random() * 10;
-    const delay = -duration * random();
-    const sizeValue = 20 + random() * 6;
-    return {
-      duration,
-      delay,
-      size: sizeValue,
-      valuesX,
-      valuesY,
-      keyTimes,
-      directionFrames
-    };
   }, [uid, slots, tileCenters, slotTile]);
 
   return (
@@ -319,62 +258,6 @@ const FamilyLIslandSvg = ({ tiles, className }: FamilyLIslandSvgProps) => {
           title={item.tooltip}
         />
       ))}
-
-      {character ? (
-        <g>
-          {([
-            { key: 'Left-Up', img: characterUpLeftPng },
-            { key: 'Right-Up', img: characterUpRightPng },
-            { key: 'Left-Down', img: characterDownLeftPng },
-            { key: 'Right-Down', img: characterDownRightPng }
-          ] as const).map((sprite) => (
-            <image
-              key={sprite.key}
-              href={sprite.img}
-              width={character.size}
-              height={character.size}
-              x={-character.size / 2}
-              y={-character.size}
-              opacity={0.95}
-            >
-              <animate
-                attributeName="x"
-                values={character.valuesX}
-                keyTimes={character.keyTimes}
-                dur={`${character.duration}s`}
-                repeatCount="indefinite"
-                begin={`${character.delay}s`}
-              />
-              <animate
-                attributeName="y"
-                values={character.valuesY}
-                keyTimes={character.keyTimes}
-                dur={`${character.duration}s`}
-                repeatCount="indefinite"
-                begin={`${character.delay}s`}
-              />
-              <animate
-                attributeName="visibility"
-                values={character.directionFrames
-                  .map((direction) => (direction === sprite.key ? 'visible' : 'hidden'))
-                  .join(';')}
-                keyTimes={character.keyTimes}
-                dur={`${character.duration}s`}
-                repeatCount="indefinite"
-                begin={`${character.delay}s`}
-              />
-              <animateTransform
-                attributeName="transform"
-                type="translate"
-                values="0 0; 0 -2; 0 0"
-                dur="3.6s"
-                repeatCount="indefinite"
-                additive="sum"
-              />
-            </image>
-          ))}
-        </g>
-      ) : null}
 
       {clouds.map((cloud) => (
         <image
